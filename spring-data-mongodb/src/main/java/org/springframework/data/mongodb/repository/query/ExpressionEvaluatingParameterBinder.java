@@ -15,6 +15,7 @@
  */
 package org.springframework.data.mongodb.repository.query;
 
+import com.mongodb.DBObject;
 import lombok.Value;
 
 import java.util.ArrayList;
@@ -119,7 +120,9 @@ class ExpressionEvaluatingParameterBinder {
 			matcher.appendReplacement(buffer, Matcher.quoteReplacement(valueForBinding));
 
 			if (binding.isQuoted()) {
-				postProcessQuotedBinding(buffer, valueForBinding);
+				postProcessQuotedBinding(buffer, valueForBinding,
+						!binding.isExpression() ? accessor.getBindableValue(binding.getParameterIndex()) : null,
+						binding.isExpression());
 			}
 		}
 
@@ -135,7 +138,7 @@ class ExpressionEvaluatingParameterBinder {
 	 * @param buffer the {@link StringBuffer} to operate upon.
 	 * @param valueForBinding the actual binding value.
 	 */
-	private void postProcessQuotedBinding(StringBuffer buffer, String valueForBinding) {
+	private void postProcessQuotedBinding(StringBuffer buffer, String valueForBinding, Object raw, boolean isExpression) {
 
 		int quotationMarkIndex = buffer.length() - valueForBinding.length() - 1;
 		char quotationMark = buffer.charAt(quotationMarkIndex);
@@ -151,7 +154,8 @@ class ExpressionEvaluatingParameterBinder {
 			quotationMark = buffer.charAt(quotationMarkIndex);
 		}
 
-		if (valueForBinding.startsWith("{")) { // remove quotation char before the complex object string
+		if (valueForBinding.startsWith("{") && (raw instanceof DBObject || isExpression)) { // remove quotation char before
+																																												// the complex object string
 
 			buffer.deleteCharAt(quotationMarkIndex);
 
@@ -181,7 +185,12 @@ class ExpressionEvaluatingParameterBinder {
 				: accessor.getBindableValue(binding.getParameterIndex());
 
 		if (value instanceof String && binding.isQuoted()) {
-			return ((String) value).startsWith("{") ? (String) value : ((String) value).replace("\"", "\\\"");
+
+			if (binding.isExpression() && ((String) value).startsWith("{")) {
+				return (String) value;
+			}
+
+			return ((String) value).replace("\\", "\\\\").replace("\"", "\\\"");
 		}
 
 		if (value instanceof byte[]) {

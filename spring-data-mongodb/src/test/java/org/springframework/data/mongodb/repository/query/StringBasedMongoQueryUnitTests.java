@@ -459,6 +459,7 @@ public class StringBasedMongoQueryUnitTests {
 
 	/**
 	 * @see DATAMONGO-1565
+	 * @see DATAMONGO-1575
 	 */
 	@Test
 	public void shouldQuoteComplexQueryStringCorreclty() throws Exception {
@@ -468,11 +469,12 @@ public class StringBasedMongoQueryUnitTests {
 
 		org.springframework.data.mongodb.core.query.Query query = mongoQuery.createQuery(accesor);
 		assertThat(query.getQueryObject(),
-				is((DBObject) new BasicDBObject("lastname", new BasicDBObject("$ne", "calamity"))));
+				is((DBObject) new BasicDBObject("lastname",  "{ $ne : \"calamity\" }")));
 	}
 
 	/**
 	 * @see DATAMONGO-1565
+	 * @see DATAMONGO-1575
 	 */
 	@Test
 	public void shouldQuotationInQuotedComplexQueryString() throws Exception {
@@ -483,7 +485,7 @@ public class StringBasedMongoQueryUnitTests {
 
 		org.springframework.data.mongodb.core.query.Query query = mongoQuery.createQuery(accesor);
 		assertThat(query.getQueryObject(),
-				is((DBObject) new BasicDBObject("lastname", new BasicDBObject("$ne", "\"calamity\""))));
+				is((DBObject) new BasicDBObject("lastname", "{ $ne : \"\\\"calamity\\\"\" }")));
 	}
 
 	private StringBasedMongoQuery createQueryForMethod(String name, Class<?>... parameters) throws Exception {
