@@ -1,5 +1,5 @@
 /*
- * Copyright 2011-2016 the original author or authors.
+ * Copyright 2011-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -419,9 +419,9 @@ public class StringBasedMongoQueryUnitTests {
 	public void shouldQuoteStringReplacementCorrectly() throws Exception {
 
 		StringBasedMongoQuery mongoQuery = createQueryForMethod("findByLastnameQuoted", String.class);
-		ConvertingParameterAccessor accesor = StubParameterAccessor.getAccessor(converter, "Matthews', password: 'foo");
+		ConvertingParameterAccessor accessor = StubParameterAccessor.getAccessor(converter, "Matthews', password: 'foo");
 
-		org.springframework.data.mongodb.core.query.Query query = mongoQuery.createQuery(accesor);
+		org.springframework.data.mongodb.core.query.Query query = mongoQuery.createQuery(accessor);
 		assertThat(query.getQueryObject(),
 				is(not(new BasicDBObjectBuilder().add("lastname", "Matthews").add("password", "foo").get())));
 		assertThat(query.getQueryObject(), is((DBObject) new BasicDBObject("lastname", "Matthews', password: 'foo")));
@@ -434,9 +434,9 @@ public class StringBasedMongoQueryUnitTests {
 	public void shouldQuoteStringReplacementContainingQuotesCorrectly() throws Exception {
 
 		StringBasedMongoQuery mongoQuery = createQueryForMethod("findByLastnameQuoted", String.class);
-		ConvertingParameterAccessor accesor = StubParameterAccessor.getAccessor(converter, "Matthews\", password: \"foo");
+		ConvertingParameterAccessor accessor = StubParameterAccessor.getAccessor(converter, "Matthews\", password: \"foo");
 
-		org.springframework.data.mongodb.core.query.Query query = mongoQuery.createQuery(accesor);
+		org.springframework.data.mongodb.core.query.Query query = mongoQuery.createQuery(accessor);
 		assertThat(query.getQueryObject(),
 				is(not(new BasicDBObjectBuilder().add("lastname", "Matthews").add("password", "foo").get())));
 		assertThat(query.getQueryObject(), is((DBObject) new BasicDBObject("lastname", "Matthews\", password: \"foo")));
@@ -449,10 +449,10 @@ public class StringBasedMongoQueryUnitTests {
 	public void shouldQuoteStringReplacementWithQuotationsCorrectly() throws Exception {
 
 		StringBasedMongoQuery mongoQuery = createQueryForMethod("findByLastnameQuoted", String.class);
-		ConvertingParameterAccessor accesor = StubParameterAccessor.getAccessor(converter,
+		ConvertingParameterAccessor accessor = StubParameterAccessor.getAccessor(converter,
 				"\"Dave Matthews\", password: 'foo");
 
-		org.springframework.data.mongodb.core.query.Query query = mongoQuery.createQuery(accesor);
+		org.springframework.data.mongodb.core.query.Query query = mongoQuery.createQuery(accessor);
 		assertThat(query.getQueryObject(),
 				is((DBObject) new BasicDBObject("lastname", "\"Dave Matthews\", password: 'foo")));
 	}
@@ -462,14 +462,13 @@ public class StringBasedMongoQueryUnitTests {
 	 * @see DATAMONGO-1575
 	 */
 	@Test
-	public void shouldQuoteComplexQueryStringCorreclty() throws Exception {
+	public void shouldQuoteComplexQueryStringCorrectly() throws Exception {
 
 		StringBasedMongoQuery mongoQuery = createQueryForMethod("findByLastnameQuoted", String.class);
-		ConvertingParameterAccessor accesor = StubParameterAccessor.getAccessor(converter, "{ $ne : \"calamity\" }");
+		ConvertingParameterAccessor accessor = StubParameterAccessor.getAccessor(converter, "{ $ne : \"calamity\" }");
 
-		org.springframework.data.mongodb.core.query.Query query = mongoQuery.createQuery(accesor);
-		assertThat(query.getQueryObject(),
-				is((DBObject) new BasicDBObject("lastname",  "{ $ne : \"calamity\" }")));
+		org.springframework.data.mongodb.core.query.Query query = mongoQuery.createQuery(accessor);
+		assertThat(query.getQueryObject(), is((DBObject) new BasicDBObject("lastname", "{ $ne : \"calamity\" }")));
 	}
 
 	/**
@@ -480,12 +479,11 @@ public class StringBasedMongoQueryUnitTests {
 	public void shouldQuotationInQuotedComplexQueryString() throws Exception {
 
 		StringBasedMongoQuery mongoQuery = createQueryForMethod("findByLastnameQuoted", String.class);
-		ConvertingParameterAccessor accesor = StubParameterAccessor.getAccessor(converter,
+		ConvertingParameterAccessor accessor = StubParameterAccessor.getAccessor(converter,
 				"{ $ne : \"\\\"calamity\\\"\" }");
 
-		org.springframework.data.mongodb.core.query.Query query = mongoQuery.createQuery(accesor);
-		assertThat(query.getQueryObject(),
-				is((DBObject) new BasicDBObject("lastname", "{ $ne : \"\\\"calamity\\\"\" }")));
+		org.springframework.data.mongodb.core.query.Query query = mongoQuery.createQuery(accessor);
+		assertThat(query.getQueryObject(), is((DBObject) new BasicDBObject("lastname", "{ $ne : \"\\\"calamity\\\"\" }")));
 	}
 
 	private StringBasedMongoQuery createQueryForMethod(String name, Class<?>... parameters) throws Exception {

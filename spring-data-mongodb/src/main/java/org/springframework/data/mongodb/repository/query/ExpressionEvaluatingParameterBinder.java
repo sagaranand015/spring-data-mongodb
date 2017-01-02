@@ -1,5 +1,5 @@
 /*
- * Copyright 2015-2016 the original author or authors.
+ * Copyright 2015-2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package org.springframework.data.mongodb.repository.query;
 
-import com.mongodb.DBObject;
 import lombok.Value;
 
 import java.util.ArrayList;
@@ -38,10 +37,11 @@ import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
+import com.mongodb.DBObject;
 import com.mongodb.util.JSON;
 
 /**
- * {@link ExpressionEvaluatingParameterBinder} allows to evaluate, convert and bind parameters to placholders within a
+ * {@link ExpressionEvaluatingParameterBinder} allows to evaluate, convert and bind parameters to placeholders within a
  * {@link String}.
  * 
  * @author Christoph Strobl
@@ -137,6 +137,8 @@ class ExpressionEvaluatingParameterBinder {
 	 *
 	 * @param buffer the {@link StringBuffer} to operate upon.
 	 * @param valueForBinding the actual binding value.
+	 * @param raw the raw binding value
+	 * @param isExpression {@literal true} if the binding value results from a SpEL expression.
 	 */
 	private void postProcessQuotedBinding(StringBuffer buffer, String valueForBinding, Object raw, boolean isExpression) {
 
@@ -154,8 +156,8 @@ class ExpressionEvaluatingParameterBinder {
 			quotationMark = buffer.charAt(quotationMarkIndex);
 		}
 
-		if (valueForBinding.startsWith("{") && (raw instanceof DBObject || isExpression)) { // remove quotation char before
-																																												// the complex object string
+		// remove quotation char before the complex object string
+		if (valueForBinding.startsWith("{") && (raw instanceof DBObject || isExpression)) {
 
 			buffer.deleteCharAt(quotationMarkIndex);
 
@@ -190,7 +192,8 @@ class ExpressionEvaluatingParameterBinder {
 				return (String) value;
 			}
 
-			return ((String) value).replace("\\", "\\\\").replace("\"", "\\\"");
+			String serialized = JSON.serialize(value);
+			return serialized.substring(1, serialized.length() - 1);
 		}
 
 		if (value instanceof byte[]) {
